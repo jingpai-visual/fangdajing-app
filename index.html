@@ -329,7 +329,26 @@ function setTheme(theme, announce = false) {
 function closeThemePicker() { $("#themePanel").hidden = true; $("#themeButton").setAttribute("aria-expanded", "false"); }
 try { setTheme(localStorage.getItem("fangdajing-theme") || "indigo"); } catch (error) { setTheme("indigo"); }
 
-function showScreen(id) { screens.forEach((screen) => $("#" + screen).classList.toggle("screen-active", screen === id)); window.scrollTo({ top: 0, behavior: "instant" }); if (id !== "barcodeScreen") stopScanner(); }
+let restoringScreenHistory = false;
+function screenFromLocation() { const candidate = decodeURIComponent(window.location.hash.replace(/^#/, "")); return screens.includes(candidate) ? candidate : "homeScreen"; }
+function showScreen(id, recordHistory = true) {
+  const nextScreen = screens.includes(id) ? id : "homeScreen";
+  const currentScreen = document.querySelector(".screen.screen-active")?.id || "homeScreen";
+  if (recordHistory && !restoringScreenHistory && currentScreen !== nextScreen) {
+    const nextUrl = `${window.location.pathname}${window.location.search}#${nextScreen}`;
+    window.history.pushState({ fangdajingScreen: nextScreen }, "", nextUrl);
+  }
+  screens.forEach((screen) => $("#" + screen).classList.toggle("screen-active", screen === nextScreen));
+  window.scrollTo({ top: 0, behavior: "instant" });
+  if (nextScreen !== "barcodeScreen") stopScanner();
+}
+window.history.replaceState({ fangdajingScreen: screenFromLocation() }, "", window.location.href);
+window.addEventListener("popstate", () => {
+  restoringScreenHistory = true;
+  showScreen(screenFromLocation(), false);
+  restoringScreenHistory = false;
+});
+if (window.location.hash) showScreen(screenFromLocation(), false);
 function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => el.classList.remove("show"), 2800); }
 function loading(show, title = "正在處理照片", text = "請稍候，不要關閉此畫面。") { $("#loadingOverlay").hidden = !show; $("#loadingTitle").textContent = title; $("#loadingText").textContent = text; }
 function panLimit() { return state.zoom <= 100 ? 0 : Math.max(34, (state.zoom - 100) * 1.24); }

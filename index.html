@@ -398,7 +398,7 @@ $("#zoomSlider").addEventListener("input", (event) => { state.zoom = Number(even
 function movePhoto(direction) {
   if (!state.imageUrl) return toast("請先拍攝或選擇一張照片");
   if (state.zoom <= 100) return toast("請先把照片放大，再用箭頭移動");
-  const step = Math.round(Math.max(12, 48 * 100 / state.zoom));
+  const step = Math.round(Math.max(24, 96 * 100 / state.zoom));
   const change = { up: [0, -step], down: [0, step], left: [-step, 0], right: [step, 0] }[direction];
   if (!change) return;
   clampPan(state.panX + change[0], state.panY + change[1]);
